@@ -229,7 +229,9 @@ public class InventoryManager {
                 plugin.getMessagesManager().sendMessage(inventoryPlayer.getPlayer(),messagesConfig.getString("kitLayoutDisabled"),true);
                 return;
             }
-            inventoryPlayer.setPreviousInventoryName(inventoryPlayer.getInventoryName());
+            //Note: intentionally NOT touching previousInventoryName here, since that field is
+            //used by preview_inventory's own "Go Back" button to return to the kit list.
+            inventoryPlayer.setKitLayoutReturnInventoryName(inventoryPlayer.getInventoryName());
             inventoryPlayer.setKitName(arrangeKit);
             removeInventoryPlayer(inventoryPlayer.getPlayer());
             plugin.getKitLayoutManager().openInventory(inventoryPlayer);

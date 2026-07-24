@@ -17,30 +17,27 @@ import pk.ajneb97.utils.InventoryItem;
 import pk.ajneb97.utils.InventoryUtils;
 import pk.ajneb97.utils.ItemUtils;
 import pk.ajneb97.utils.MiniMessageUtils;
-import pk.ajneb97.utils.OtherUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Manages the per-player virtual kit layout editor: a GUI where a player can freely
- * rearrange the items of a kit into their own preferred slots before claiming it.
+ * Manages the per-player virtual kit layout editor: a plain inventory GUI (hotbar + main
+ * storage, laid out exactly like a normal inventory) where a player can freely rearrange
+ * the items of a kit into their own preferred slots before claiming it. Armor/offhand
+ * items are excluded - they always auto-equip on claim regardless of layout.
  * All items shown here are virtual (freshly created from the kit's configuration) and
  * are never given to the player from this inventory - only the resulting slot layout
  * is persisted, and it is applied at claim time by KitsManager.
  */
 public class KitLayoutManager {
 
-    public static final int HELMET_SLOT = 9;
-    public static final int CHESTPLATE_SLOT = 10;
-    public static final int LEGGINGS_SLOT = 11;
-    public static final int BOOTS_SLOT = 12;
-    public static final int OFFHAND_SLOT = 13;
-    public static final int RESET_SLOT = 16;
-    public static final int BACK_SLOT = 17;
-    public static final int INTERACTIVE_START = 18;
-    public static final int INTERACTIVE_END = 53;
-    public static final int INTERACTIVE_OFFSET = 18;
+    public static final int INVENTORY_SIZE = 45;
+    public static final int INTERACTIVE_START = 0;
+    public static final int INTERACTIVE_END = 35;
+    public static final int RESET_SLOT = 36;
+    public static final int BACK_SLOT = 37;
+    public static final int SAVE_SLOT = 44;
 
     public static final String TAG_INDEX = "playerkits_layout_index";
     public static final String TAG_ID = "playerkits_layout_id";
@@ -92,9 +89,9 @@ public class KitLayoutManager {
         String title = mainConfigManager.getKitLayoutTitle().replace("%kit%",kit.getName());
         Inventory inv;
         if(mainConfigManager.isUseMiniMessage()){
-            inv = MiniMessageUtils.createInventory(54,title);
+            inv = MiniMessageUtils.createInventory(INVENTORY_SIZE,title);
         }else{
-            inv = Bukkit.createInventory(null,54,MessagesManager.getLegacyColoredMessage(title));
+            inv = Bukkit.createInventory(null,INVENTORY_SIZE,MessagesManager.getLegacyColoredMessage(title));
         }
 
         populateInventory(inv,inventoryPlayer,kit);
@@ -116,28 +113,29 @@ public class KitLayoutManager {
 
         inv.clear();
 
-        //Border decoration
-        for(int i=0;i<9;i++){
-            decorate(inv,i);
-        }
-        decorate(inv,14);
-        decorate(inv,15);
-
-        //Reset button
+        //Reset button (left side)
         Material resetMaterial = parseMaterial(mainConfigManager.getKitLayoutResetButtonMaterial(),Material.BARRIER);
         new InventoryItem(inv,RESET_SLOT,resetMaterial)
                 .name(mainConfigManager.getKitLayoutResetButtonName())
                 .lore(new ArrayList<>(mainConfigManager.getKitLayoutResetButtonLore()))
                 .ready();
 
-        //Back button
+        //Back button (left side, next to Reset)
         Material backMaterial = parseMaterial(mainConfigManager.getKitLayoutBackButtonMaterial(),Material.ARROW);
         new InventoryItem(inv,BACK_SLOT,backMaterial)
                 .name(mainConfigManager.getKitLayoutBackButtonName())
                 .lore(new ArrayList<>(mainConfigManager.getKitLayoutBackButtonLore()))
                 .ready();
 
-        //Split kit items into armor/offhand (fixed display) and storage (interactive) items
+        //Save button (far right, away from Go Back)
+        Material saveMaterial = parseMaterial(mainConfigManager.getKitLayoutSaveButtonMaterial(),Material.EMERALD);
+        new InventoryItem(inv,SAVE_SLOT,saveMaterial)
+                .name(mainConfigManager.getKitLayoutSaveButtonName())
+                .lore(new ArrayList<>(mainConfigManager.getKitLayoutSaveButtonLore()))
+                .ready();
+
+        //Armor/offhand items always auto-equip on claim regardless of layout, so they are
+        //excluded here entirely - only the remaining items are shown/arrangeable.
         ArrayList<KitItem> items = kit.getItems();
         KitItem helmetItem = null, chestplateItem = null, leggingsItem = null, bootsItem = null, offhandItem = null;
 
@@ -166,14 +164,8 @@ public class KitLayoutManager {
             }
         }
 
-        placeArmorDisplay(inv,HELMET_SLOT,helmetItem,player,kit,kitItemManager);
-        placeArmorDisplay(inv,CHESTPLATE_SLOT,chestplateItem,player,kit,kitItemManager);
-        placeArmorDisplay(inv,LEGGINGS_SLOT,leggingsItem,player,kit,kitItemManager);
-        placeArmorDisplay(inv,BOOTS_SLOT,bootsItem,player,kit,kitItemManager);
-        placeArmorDisplay(inv,OFFHAND_SLOT,offhandItem,player,kit,kitItemManager);
-
-        //Remaining items go into the interactive area
-        boolean[] usedGuiSlots = new boolean[54];
+        //Remaining items go into the interactive area (hotbar + main storage, slots 0-35)
+        boolean[] usedGuiSlots = new boolean[INVENTORY_SIZE];
         List<Integer> pendingIndexes = new ArrayList<>();
 
         for(int index=0;index<items.size();index++){
@@ -185,11 +177,8 @@ public class KitLayoutManager {
 
             Integer savedSlot = playerDataManager.getKitLayoutSlot(player,kit.getName(),index,kitItem.getStableId());
             int guiSlot = -1;
-            if(savedSlot != null && savedSlot >= 0 && savedSlot <= 35){
-                int candidate = savedSlot + INTERACTIVE_OFFSET;
-                if(candidate >= INTERACTIVE_START && candidate <= INTERACTIVE_END && !usedGuiSlots[candidate]){
-                    guiSlot = candidate;
-                }
+            if(savedSlot != null && savedSlot >= INTERACTIVE_START && savedSlot <= INTERACTIVE_END && !usedGuiSlots[savedSlot]){
+                guiSlot = savedSlot;
             }
 
             if(guiSlot != -1){
@@ -216,29 +205,12 @@ public class KitLayoutManager {
         }
     }
 
-    private void placeArmorDisplay(Inventory inv,int slot,KitItem kitItem,Player player,Kit kit,KitItemManager kitItemManager){
-        if(kitItem == null){
-            decorate(inv,slot);
-            return;
-        }
-        ItemStack item = kitItemManager.createItemFromKitItem(kitItem,player,kit);
-        inv.setItem(slot,item);
-    }
-
     private void placeStorageItem(Inventory inv,int guiSlot,int index,KitItem kitItem,Player player,Kit kit,KitItemManager kitItemManager){
         ItemStack item = kitItemManager.createItemFromKitItem(kitItem,player,kit);
         item = ItemUtils.setTagStringItem(plugin,item,TAG_INDEX,index+"");
         String stableId = kitItem.getStableId();
         item = ItemUtils.setTagStringItem(plugin,item,TAG_ID,stableId != null ? stableId : "");
         inv.setItem(guiSlot,item);
-    }
-
-    private void decorate(Inventory inv,int slot){
-        if(OtherUtils.isLegacy()){
-            new InventoryItem(inv,slot,Material.valueOf("STAINED_GLASS_PANE")).dataValue((short) 15).name("").ready();
-        }else{
-            new InventoryItem(inv,slot,Material.BLACK_STAINED_GLASS_PANE).name("").ready();
-        }
     }
 
     private Material parseMaterial(String name,Material fallback){
@@ -273,6 +245,10 @@ public class KitLayoutManager {
             goBack(inventoryPlayer);
             return;
         }
+        if(slot == SAVE_SLOT){
+            saveLayoutFromInventory(inventoryPlayer);
+            return;
+        }
 
         if(slot >= INTERACTIVE_START && slot <= INTERACTIVE_END){
             if(clickType == ClickType.LEFT || clickType == ClickType.RIGHT){
@@ -302,7 +278,7 @@ public class KitLayoutManager {
         saveLayoutFromInventory(inventoryPlayer);
         removeInventoryPlayer(inventoryPlayer.getPlayer());
 
-        inventoryPlayer.setInventoryName(inventoryPlayer.getPreviousInventoryName());
+        inventoryPlayer.setInventoryName(inventoryPlayer.getKitLayoutReturnInventoryName());
         plugin.getInventoryManager().openInventory(inventoryPlayer);
     }
 
@@ -321,17 +297,13 @@ public class KitLayoutManager {
         //Defensive: make sure no virtual item leaves the GUI on the player's cursor.
         ItemStack cursorItem = player.getItemOnCursor();
         if(cursorItem != null && !cursorItem.getType().equals(Material.AIR)){
-            boolean placed = false;
             for(int guiSlot=INTERACTIVE_START; guiSlot<=INTERACTIVE_END; guiSlot++){
                 ItemStack current = inv.getItem(guiSlot);
                 if(current == null || current.getType().equals(Material.AIR)){
                     inv.setItem(guiSlot,cursorItem);
-                    placed = true;
                     break;
                 }
-            }
-            if(!placed){
-                //No free slot left, the item is simply discarded (it never existed for real).
+                //If no free slot is found, the item is simply discarded (it never existed for real).
             }
             player.setItemOnCursor(null);
         }
@@ -349,7 +321,7 @@ public class KitLayoutManager {
             try{
                 int index = Integer.parseInt(indexTag);
                 String idTag = ItemUtils.getTagStringItem(plugin,item,TAG_ID);
-                layout.add(new KitLayoutPosition(index, idTag != null ? idTag : "", guiSlot-INTERACTIVE_OFFSET));
+                layout.add(new KitLayoutPosition(index, idTag != null ? idTag : "", guiSlot));
             }catch(NumberFormatException ignored){
             }
         }

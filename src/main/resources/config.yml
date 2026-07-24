@@ -64,6 +64,12 @@ kit_layout:
     lore:
       - "&7Saves your layout and returns"
       - "&7to the kit preview."
+  save_button:
+    material: EMERALD
+    name: "&a&lSave Layout"
+    lore:
+      - "&7Click to save your current"
+      - "&7item arrangement."
 player_data_save_time: 300
 update_notify: true
 use_minimessage: false

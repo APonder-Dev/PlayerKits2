@@ -42,6 +42,9 @@ public class MainConfigManager {
     private String kitLayoutBackButtonMaterial;
     private String kitLayoutBackButtonName;
     private List<String> kitLayoutBackButtonLore;
+    private String kitLayoutSaveButtonMaterial;
+    private String kitLayoutSaveButtonName;
+    private List<String> kitLayoutSaveButtonLore;
 
     public MainConfigManager(PlayerKits2 plugin){
         this.plugin = plugin;
@@ -76,6 +79,9 @@ public class MainConfigManager {
         kitLayoutBackButtonMaterial = config.getString("kit_layout.back_button.material");
         kitLayoutBackButtonName = config.getString("kit_layout.back_button.name");
         kitLayoutBackButtonLore = config.getStringList("kit_layout.back_button.lore");
+        kitLayoutSaveButtonMaterial = config.getString("kit_layout.save_button.material");
+        kitLayoutSaveButtonName = config.getString("kit_layout.save_button.name");
+        kitLayoutSaveButtonLore = config.getStringList("kit_layout.save_button.lore");
     }
 
     public boolean reloadConfig(){
@@ -129,6 +135,19 @@ public class MainConfigManager {
                 getConfig().set("kit_layout.back_button.lore", new ArrayList<>(java.util.Arrays.asList(
                         "&7Saves your layout and returns",
                         "&7to the kit preview.")));
+                getConfig().set("kit_layout.save_button.material", "EMERALD");
+                getConfig().set("kit_layout.save_button.name", "&a&lSave Layout");
+                getConfig().set("kit_layout.save_button.lore", new ArrayList<>(java.util.Arrays.asList(
+                        "&7Click to save your current",
+                        "&7item arrangement.")));
+                configFile.saveConfig();
+            }
+            if(!text.contains("save_button:")){
+                getConfig().set("kit_layout.save_button.material", "EMERALD");
+                getConfig().set("kit_layout.save_button.name", "&a&lSave Layout");
+                getConfig().set("kit_layout.save_button.lore", new ArrayList<>(java.util.Arrays.asList(
+                        "&7Click to save your current",
+                        "&7item arrangement.")));
                 configFile.saveConfig();
             }
         }catch(IOException e){
@@ -226,5 +245,17 @@ public class MainConfigManager {
 
     public List<String> getKitLayoutBackButtonLore() {
         return kitLayoutBackButtonLore;
+    }
+
+    public String getKitLayoutSaveButtonMaterial() {
+        return kitLayoutSaveButtonMaterial;
+    }
+
+    public String getKitLayoutSaveButtonName() {
+        return kitLayoutSaveButtonName;
+    }
+
+    public List<String> getKitLayoutSaveButtonLore() {
+        return kitLayoutSaveButtonLore;
     }
 }

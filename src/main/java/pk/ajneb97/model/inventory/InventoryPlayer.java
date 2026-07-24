@@ -10,6 +10,7 @@ public class InventoryPlayer {
     private String previousInventoryName;
     private String kitName;
     private ItemStack[] savedInventoryContents;
+    private String kitLayoutReturnInventoryName;
 
     public InventoryPlayer(Player player, String inventoryName) {
         this.player = player;
@@ -46,6 +47,14 @@ public class InventoryPlayer {
 
     public void setKitName(String kitName) {
         this.kitName = kitName;
+    }
+
+    public String getKitLayoutReturnInventoryName() {
+        return kitLayoutReturnInventoryName;
+    }
+
+    public void setKitLayoutReturnInventoryName(String kitLayoutReturnInventoryName) {
+        this.kitLayoutReturnInventoryName = kitLayoutReturnInventoryName;
     }
 
     public void restoreSavedInventoryContents() {
