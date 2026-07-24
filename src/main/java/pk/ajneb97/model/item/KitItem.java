@@ -275,6 +275,17 @@ public class KitItem{
         this.previewSlot = previewSlot;
     }
 
+    /**
+     * A stable identifier used to detect if a kit item still matches a previously
+     * saved player layout position (kit contents may change between saves).
+     */
+    public String getStableId(){
+        if(originalItem != null){
+            return originalItem.getType().name();
+        }
+        return id;
+    }
+
     public void removeOffHandFromEditInventory(PlayerKits2 plugin){
         //Assumes that has the lore and the nbt
         if(originalItem != null){

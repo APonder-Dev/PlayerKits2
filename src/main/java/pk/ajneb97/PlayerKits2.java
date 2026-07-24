@@ -9,6 +9,7 @@ import pk.ajneb97.api.PlayerKitsAPI;
 import pk.ajneb97.configs.ConfigsManager;
 import pk.ajneb97.database.MySQLConnection;
 import pk.ajneb97.listeners.InventoryEditListener;
+import pk.ajneb97.listeners.KitLayoutListener;
 import pk.ajneb97.listeners.OtherListener;
 import pk.ajneb97.listeners.PlayerListener;
 import pk.ajneb97.managers.*;
@@ -34,6 +35,7 @@ public class PlayerKits2 extends JavaPlugin {
     private PlayerDataManager playerDataManager;
     private InventoryManager inventoryManager;
     private InventoryEditManager inventoryEditManager;
+    private KitLayoutManager kitLayoutManager;
     private NMSManager nmsManager;
     private UpdateCheckerManager updateCheckerManager;
     private VerifyManager verifyManager;
@@ -52,6 +54,7 @@ public class PlayerKits2 extends JavaPlugin {
         this.kitItemManager = new KitItemManager(this);
         this.inventoryManager = new InventoryManager(this);
         this.inventoryEditManager = new InventoryEditManager(this);
+        this.kitLayoutManager = new KitLayoutManager(this);
         this.kitsManager = new KitsManager(this);
         this.dependencyManager = new DependencyManager(this);
         this.nmsManager = new NMSManager(this);
@@ -101,6 +104,7 @@ public class PlayerKits2 extends JavaPlugin {
         PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(new PlayerListener(this), this);
         pm.registerEvents(new InventoryEditListener(this), this);
+        pm.registerEvents(new KitLayoutListener(this), this);
         pm.registerEvents(new OtherListener(), this);
     }
 
@@ -201,6 +205,10 @@ public class PlayerKits2 extends JavaPlugin {
 
     public InventoryEditManager getInventoryEditManager() {
         return inventoryEditManager;
+    }
+
+    public KitLayoutManager getKitLayoutManager() {
+        return kitLayoutManager;
     }
 
     public MySQLConnection getMySQLConnection() {

@@ -1,5 +1,7 @@
 package pk.ajneb97.model;
 
+import pk.ajneb97.model.internal.KitLayoutPosition;
+
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -135,6 +137,43 @@ public class PlayerData {
                 kits.remove(i);
                 modified = true;
             }
+        }
+    }
+
+    public PlayerDataKit getOrCreateKit(String kitName){
+        PlayerDataKit playerDataKit = getKit(kitName);
+        if(playerDataKit == null){
+            playerDataKit = new PlayerDataKit(kitName);
+            kits.add(playerDataKit);
+        }
+        return playerDataKit;
+    }
+
+    public boolean setKitLayout(String kitName, ArrayList<KitLayoutPosition> layout){
+        PlayerDataKit playerDataKit = getKit(kitName);
+        boolean creating = false;
+        if(playerDataKit == null){
+            playerDataKit = new PlayerDataKit(kitName);
+            kits.add(playerDataKit);
+            creating = true;
+        }
+
+        playerDataKit.setLayout(layout);
+        return creating;
+    }
+
+    public Integer getKitLayoutSlot(String kitName, int itemIndex, String itemId){
+        PlayerDataKit playerDataKit = getKit(kitName);
+        if(playerDataKit == null){
+            return null;
+        }
+        return playerDataKit.getLayoutSlot(itemIndex, itemId);
+    }
+
+    public void clearKitLayout(String kitName){
+        PlayerDataKit playerDataKit = getKit(kitName);
+        if(playerDataKit != null){
+            playerDataKit.clearLayout();
         }
     }
 }

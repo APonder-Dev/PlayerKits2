@@ -7,9 +7,11 @@ import pk.ajneb97.configs.model.CommonConfig;
 import pk.ajneb97.model.PlayerData;
 import pk.ajneb97.model.PlayerDataKit;
 import pk.ajneb97.model.internal.GenericCallback;
+import pk.ajneb97.model.internal.KitLayoutPosition;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -51,6 +53,18 @@ public class PlayersConfigManager extends DataFolderConfigManager{
                             playerDataKit.setOneTime(oneTime);
                             playerDataKit.setBought(bought);
 
+                            if(config.contains("kits."+key+".layout")){
+                                ArrayList<KitLayoutPosition> layout = new ArrayList<>();
+                                List<String> layoutList = config.getStringList("kits."+key+".layout");
+                                for(String entry : layoutList){
+                                    KitLayoutPosition position = KitLayoutPosition.deserialize(entry);
+                                    if(position != null){
+                                        layout.add(position);
+                                    }
+                                }
+                                playerDataKit.setLayout(layout);
+                            }
+
                             playerDataKits.add(playerDataKit);
                         }
                     }
@@ -84,6 +98,15 @@ public class PlayersConfigManager extends DataFolderConfigManager{
             config.set("kits."+kitName+".cooldown",playerDataKit.getCooldown());
             config.set("kits."+kitName+".one_time",playerDataKit.isOneTime());
             config.set("kits."+kitName+".bought",playerDataKit.isBought());
+
+            ArrayList<KitLayoutPosition> layout = playerDataKit.getLayout();
+            if(layout != null && !layout.isEmpty()){
+                List<String> layoutList = new ArrayList<>();
+                for(KitLayoutPosition position : layout){
+                    layoutList.add(position.serialize());
+                }
+                config.set("kits."+kitName+".layout",layoutList);
+            }
         }
 
         playerConfig.saveConfig();

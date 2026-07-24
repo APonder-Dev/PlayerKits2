@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainConfigManager {
 
@@ -27,6 +29,19 @@ public class MainConfigManager {
     private boolean isMySQL;
     private boolean updateNotify;
     private boolean useMiniMessage;
+
+    private boolean kitLayoutEnabled;
+    private int kitLayoutButtonSlot;
+    private String kitLayoutButtonMaterial;
+    private String kitLayoutButtonName;
+    private List<String> kitLayoutButtonLore;
+    private String kitLayoutTitle;
+    private String kitLayoutResetButtonMaterial;
+    private String kitLayoutResetButtonName;
+    private List<String> kitLayoutResetButtonLore;
+    private String kitLayoutBackButtonMaterial;
+    private String kitLayoutBackButtonName;
+    private List<String> kitLayoutBackButtonLore;
 
     public MainConfigManager(PlayerKits2 plugin){
         this.plugin = plugin;
@@ -48,6 +63,19 @@ public class MainConfigManager {
         claimKitShortCommand = config.getBoolean("claim_kit_short_command");
         useMiniMessage = config.getBoolean("use_minimessage");
         newKitDefaultSaveModeOriginal = config.getBoolean("new_kit_default_save_mode_original");
+
+        kitLayoutEnabled = config.getBoolean("kit_layout.enabled");
+        kitLayoutButtonSlot = config.getInt("kit_layout.button.slot");
+        kitLayoutButtonMaterial = config.getString("kit_layout.button.material");
+        kitLayoutButtonName = config.getString("kit_layout.button.name");
+        kitLayoutButtonLore = config.getStringList("kit_layout.button.lore");
+        kitLayoutTitle = config.getString("kit_layout.title");
+        kitLayoutResetButtonMaterial = config.getString("kit_layout.reset_button.material");
+        kitLayoutResetButtonName = config.getString("kit_layout.reset_button.name");
+        kitLayoutResetButtonLore = config.getStringList("kit_layout.reset_button.lore");
+        kitLayoutBackButtonMaterial = config.getString("kit_layout.back_button.material");
+        kitLayoutBackButtonName = config.getString("kit_layout.back_button.name");
+        kitLayoutBackButtonLore = config.getStringList("kit_layout.back_button.lore");
     }
 
     public boolean reloadConfig(){
@@ -79,6 +107,28 @@ public class MainConfigManager {
             }
             if(!text.contains("new_kit_default_save_mode_original:")){
                 getConfig().set("new_kit_default_save_mode_original", true);
+                configFile.saveConfig();
+            }
+            if(!text.contains("kit_layout:")){
+                getConfig().set("kit_layout.enabled", true);
+                getConfig().set("kit_layout.button.slot", 46);
+                getConfig().set("kit_layout.button.material", "HOPPER");
+                getConfig().set("kit_layout.button.name", "&6&lArrange Your Kit");
+                getConfig().set("kit_layout.button.lore", new ArrayList<>(java.util.Arrays.asList(
+                        "&7Click to freely arrange the items",
+                        "&7of this kit into your own preferred",
+                        "&7inventory layout.")));
+                getConfig().set("kit_layout.title", "&8&lArranging: %kit%");
+                getConfig().set("kit_layout.reset_button.material", "BARRIER");
+                getConfig().set("kit_layout.reset_button.name", "&c&lReset Layout");
+                getConfig().set("kit_layout.reset_button.lore", new ArrayList<>(java.util.Arrays.asList(
+                        "&7Restore the default arrangement",
+                        "&7of this kit.")));
+                getConfig().set("kit_layout.back_button.material", "ARROW");
+                getConfig().set("kit_layout.back_button.name", "&7&lGo Back");
+                getConfig().set("kit_layout.back_button.lore", new ArrayList<>(java.util.Arrays.asList(
+                        "&7Saves your layout and returns",
+                        "&7to the kit preview.")));
                 configFile.saveConfig();
             }
         }catch(IOException e){
@@ -128,5 +178,53 @@ public class MainConfigManager {
 
     public boolean isUseMiniMessage() {
         return useMiniMessage;
+    }
+
+    public boolean isKitLayoutEnabled() {
+        return kitLayoutEnabled;
+    }
+
+    public int getKitLayoutButtonSlot() {
+        return kitLayoutButtonSlot;
+    }
+
+    public String getKitLayoutButtonMaterial() {
+        return kitLayoutButtonMaterial;
+    }
+
+    public String getKitLayoutButtonName() {
+        return kitLayoutButtonName;
+    }
+
+    public List<String> getKitLayoutButtonLore() {
+        return kitLayoutButtonLore;
+    }
+
+    public String getKitLayoutTitle() {
+        return kitLayoutTitle;
+    }
+
+    public String getKitLayoutResetButtonMaterial() {
+        return kitLayoutResetButtonMaterial;
+    }
+
+    public String getKitLayoutResetButtonName() {
+        return kitLayoutResetButtonName;
+    }
+
+    public List<String> getKitLayoutResetButtonLore() {
+        return kitLayoutResetButtonLore;
+    }
+
+    public String getKitLayoutBackButtonMaterial() {
+        return kitLayoutBackButtonMaterial;
+    }
+
+    public String getKitLayoutBackButtonName() {
+        return kitLayoutBackButtonName;
+    }
+
+    public List<String> getKitLayoutBackButtonLore() {
+        return kitLayoutBackButtonLore;
     }
 }

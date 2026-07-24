@@ -8,6 +8,7 @@ import pk.ajneb97.managers.MessagesManager;
 import pk.ajneb97.model.PlayerData;
 import pk.ajneb97.model.PlayerDataKit;
 import pk.ajneb97.model.internal.GenericCallback;
+import pk.ajneb97.model.internal.KitLayoutPosition;
 import pk.ajneb97.model.internal.SimpleCallback;
 
 import java.sql.Connection;
@@ -63,12 +64,49 @@ public class MySQLConnection {
                     " COOLDOWN BIGINT, " +
                     " ONE_TIME BOOLEAN, " +
                     " BOUGHT BOOLEAN, " +
+                    " LAYOUT TEXT, " +
                     " PRIMARY KEY ( ID ), " +
                     " FOREIGN KEY (UUID) REFERENCES playerkits_players(UUID))");
             statement2.executeUpdate();
+
+            //Migration: add LAYOUT column to already-existing tables from older plugin versions
+            try(PreparedStatement statement3 = connection.prepareStatement(
+                    "ALTER TABLE playerkits_players_kits ADD COLUMN LAYOUT TEXT")){
+                statement3.executeUpdate();
+            }catch(SQLException ignored){
+                //Column already exists
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    private String serializeLayout(ArrayList<KitLayoutPosition> layout){
+        if(layout == null || layout.isEmpty()){
+            return "";
+        }
+        StringBuilder builder = new StringBuilder();
+        for(int i=0;i<layout.size();i++){
+            if(i > 0){
+                builder.append(",");
+            }
+            builder.append(layout.get(i).serialize());
+        }
+        return builder.toString();
+    }
+
+    private ArrayList<KitLayoutPosition> deserializeLayout(String text){
+        ArrayList<KitLayoutPosition> layout = new ArrayList<>();
+        if(text == null || text.isEmpty()){
+            return layout;
+        }
+        for(String entry : text.split(",")){
+            KitLayoutPosition position = KitLayoutPosition.deserialize(entry);
+            if(position != null){
+                layout.add(position);
+            }
+        }
+        return layout;
     }
 
     public void getPlayer(String uuid, GenericCallback<PlayerData> callback){
@@ -82,7 +120,8 @@ public class MySQLConnection {
                                     "playerkits_players_kits.NAME, " +
                                     "playerkits_players_kits.COOLDOWN, " +
                                     "playerkits_players_kits.ONE_TIME, " +
-                                    "playerkits_players_kits.BOUGHT " +
+                                    "playerkits_players_kits.BOUGHT, " +
+                                    "playerkits_players_kits.LAYOUT " +
                                     "FROM playerkits_players LEFT JOIN playerkits_players_kits " +
                                     "ON playerkits_players.UUID = playerkits_players_kits.UUID " +
                                     "WHERE playerkits_players.UUID = ?");
@@ -98,6 +137,7 @@ public class MySQLConnection {
                         long cooldown = result.getLong("COOLDOWN");
                         boolean oneTime = result.getBoolean("ONE_TIME");
                         boolean bought = result.getBoolean("BOUGHT");
+                        String layout = result.getString("LAYOUT");
                         if(player == null){
                             player = new PlayerData(uuid,playerName);
                         }
@@ -106,6 +146,7 @@ public class MySQLConnection {
                             playerDataKit.setCooldown(cooldown);
                             playerDataKit.setOneTime(oneTime);
                             playerDataKit.setBought(bought);
+                            playerDataKit.setLayout(deserializeLayout(layout));
                             player.addKit(playerDataKit);
                         }
                     }
@@ -175,28 +216,31 @@ public class MySQLConnection {
             public void run() {
                 try(Connection connection = getConnection()){
                     PreparedStatement statement = null;
+                    String layout = serializeLayout(kit.getLayout());
                     if(mustCreate){
                         // Insert
                         statement = connection.prepareStatement(
                                 "INSERT INTO playerkits_players_kits " +
-                                        "(UUID, NAME, COOLDOWN, ONE_TIME, BOUGHT) VALUE (?,?,?,?,?)");
+                                        "(UUID, NAME, COOLDOWN, ONE_TIME, BOUGHT, LAYOUT) VALUE (?,?,?,?,?,?)");
 
                         statement.setString(1, player.getUuid().toString());
                         statement.setString(2, kit.getName());
                         statement.setLong(3, kit.getCooldown());
                         statement.setBoolean(4, kit.isOneTime());
                         statement.setBoolean(5, kit.isBought());
+                        statement.setString(6, layout);
                     }else{
                         // Update
                         statement = connection.prepareStatement(
                                 "UPDATE playerkits_players_kits SET " +
-                                        "COOLDOWN=?, ONE_TIME=?, BOUGHT=? WHERE UUID=? AND NAME=?");
+                                        "COOLDOWN=?, ONE_TIME=?, BOUGHT=?, LAYOUT=? WHERE UUID=? AND NAME=?");
 
                         statement.setLong(1, kit.getCooldown());
                         statement.setBoolean(2, kit.isOneTime());
                         statement.setBoolean(3, kit.isBought());
-                        statement.setString(4, player.getUuid().toString());
-                        statement.setString(5, kit.getName());
+                        statement.setString(4, layout);
+                        statement.setString(5, player.getUuid().toString());
+                        statement.setString(6, kit.getName());
                     }
                     statement.executeUpdate();
                 } catch (SQLException e) {

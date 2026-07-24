@@ -7,7 +7,9 @@ import pk.ajneb97.PlayerKits2;
 import pk.ajneb97.configs.PlayersConfigManager;
 import pk.ajneb97.database.MySQLConnection;
 import pk.ajneb97.model.PlayerData;
+import pk.ajneb97.model.PlayerDataKit;
 import pk.ajneb97.model.internal.GenericCallback;
+import pk.ajneb97.model.internal.KitLayoutPosition;
 import pk.ajneb97.model.internal.PlayerKitsMessageResult;
 import pk.ajneb97.utils.OtherUtils;
 
@@ -133,6 +135,46 @@ public class PlayerDataManager {
             return false;
         }else{
             return playerData.getKitHasBought(kitName);
+        }
+    }
+
+    public void saveKitLayout(Player player, String kitName, ArrayList<KitLayoutPosition> layout){
+        PlayerData playerData = getPlayer(player,true);
+        boolean creating = playerData.setKitLayout(kitName,layout);
+        playerData.setModified(true);
+        if(plugin.getMySQLConnection() != null){
+            plugin.getMySQLConnection().updateKit(playerData,playerData.getKit(kitName),creating);
+        }
+    }
+
+    public Integer getKitLayoutSlot(Player player, String kitName, int itemIndex, String itemId){
+        PlayerData playerData = getPlayerByUUID(player.getUniqueId());
+        if(playerData == null){
+            return null;
+        }
+        return playerData.getKitLayoutSlot(kitName,itemIndex,itemId);
+    }
+
+    public ArrayList<KitLayoutPosition> getKitLayout(Player player, String kitName){
+        PlayerData playerData = getPlayerByUUID(player.getUniqueId());
+        if(playerData == null){
+            return new ArrayList<>();
+        }
+        PlayerDataKit playerDataKit = playerData.getKit(kitName);
+        if(playerDataKit == null){
+            return new ArrayList<>();
+        }
+        return playerDataKit.getLayout();
+    }
+
+    public void resetKitLayout(Player player, String kitName){
+        PlayerData playerData = getPlayer(player,true);
+        boolean creating = playerData.getKit(kitName) == null;
+        playerData.getOrCreateKit(kitName);
+        playerData.clearKitLayout(kitName);
+        playerData.setModified(true);
+        if(plugin.getMySQLConnection() != null){
+            plugin.getMySQLConnection().updateKit(playerData,playerData.getKit(kitName),creating);
         }
     }
 

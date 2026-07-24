@@ -41,6 +41,29 @@ new_kit_default_values:
         - "&cto claim this kit again."
       item_flags:
         - HIDE_ATTRIBUTES
+kit_layout:
+  enabled: true
+  button:
+    slot: 46
+    material: HOPPER
+    name: "&6&lArrange Your Kit"
+    lore:
+      - "&7Click to freely arrange the items"
+      - "&7of this kit into your own preferred"
+      - "&7inventory layout."
+  title: "&8&lArranging: %kit%"
+  reset_button:
+    material: BARRIER
+    name: "&c&lReset Layout"
+    lore:
+      - "&7Restore the default arrangement"
+      - "&7of this kit."
+  back_button:
+    material: ARROW
+    name: "&7&lGo Back"
+    lore:
+      - "&7Saves your layout and returns"
+      - "&7to the kit preview."
 player_data_save_time: 300
 update_notify: true
 use_minimessage: false

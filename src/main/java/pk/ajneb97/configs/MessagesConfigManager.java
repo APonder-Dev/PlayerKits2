@@ -82,6 +82,12 @@ public class MessagesConfigManager {
                 getConfig().set("pluginCriticalErrors", "&cThe plugin has detected some errors. Check them using &7/kit verify");
                 saveConfig();
             }
+            if(!text.contains("kitLayoutSaved:")){
+                getConfig().set("kitLayoutSaved", "&aYour kit layout has been saved.");
+                getConfig().set("kitLayoutReset", "&aYour kit layout has been reset to default.");
+                getConfig().set("kitLayoutDisabled", "&cArranging this kit's layout is disabled.");
+                saveConfig();
+            }
 
         }catch(IOException e){
             e.printStackTrace();

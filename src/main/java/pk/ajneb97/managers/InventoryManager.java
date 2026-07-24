@@ -1,6 +1,7 @@
 package pk.ajneb97.managers;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
@@ -131,6 +132,7 @@ public class InventoryManager {
         //Special items for some inventories
         if(inventoryPlayer.getInventoryName().equals("preview_inventory")){
             setKitPreviewItems(inv,inventoryPlayer,kitInventory);
+            setKitArrangeButton(inv,inventoryPlayer);
         }
 
 
@@ -189,7 +191,51 @@ public class InventoryManager {
         }
     }
 
+    public void setKitArrangeButton(Inventory inv,InventoryPlayer inventoryPlayer){
+        MainConfigManager mainConfigManager = plugin.getConfigsManager().getMainConfigManager();
+        if(!mainConfigManager.isKitLayoutEnabled()){
+            return;
+        }
+
+        Kit kit = plugin.getKitsManager().getKitByName(inventoryPlayer.getKitName());
+        if(kit == null){
+            return;
+        }
+
+        Material material = Material.matchMaterial(mainConfigManager.getKitLayoutButtonMaterial());
+        if(material == null){
+            material = Material.HOPPER;
+        }
+
+        ItemStack item = new ItemStack(material);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(MessagesManager.getLegacyColoredMessage(mainConfigManager.getKitLayoutButtonName()));
+        List<String> lore = new ArrayList<>();
+        for(String line : mainConfigManager.getKitLayoutButtonLore()){
+            lore.add(MessagesManager.getLegacyColoredMessage(line));
+        }
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+
+        item = ItemUtils.setTagStringItem(plugin,item,"playerkits_arrange_kit",kit.getName());
+        inv.setItem(mainConfigManager.getKitLayoutButtonSlot(),item);
+    }
+
     public void clickInventory(InventoryPlayer inventoryPlayer, ItemStack item, ClickType clickType){
+        String arrangeKit = ItemUtils.getTagStringItem(plugin,item,"playerkits_arrange_kit");
+        if(arrangeKit != null){
+            if(!plugin.getConfigsManager().getMainConfigManager().isKitLayoutEnabled()){
+                FileConfiguration messagesConfig = plugin.getConfigsManager().getMessagesConfigManager().getConfig();
+                plugin.getMessagesManager().sendMessage(inventoryPlayer.getPlayer(),messagesConfig.getString("kitLayoutDisabled"),true);
+                return;
+            }
+            inventoryPlayer.setPreviousInventoryName(inventoryPlayer.getInventoryName());
+            inventoryPlayer.setKitName(arrangeKit);
+            removeInventoryPlayer(inventoryPlayer.getPlayer());
+            plugin.getKitLayoutManager().openInventory(inventoryPlayer);
+            return;
+        }
+
         String kitName = ItemUtils.getTagStringItem(plugin,item,"playerkits_kit");
         if(kitName != null){
             clickOnKitItem(inventoryPlayer,kitName,clickType);

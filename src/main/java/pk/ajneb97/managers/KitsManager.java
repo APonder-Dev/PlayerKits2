@@ -307,7 +307,9 @@ public class KitsManager {
         sendKitActions(kit.getClaimActions(),player,true);
 
         //Give kit items
-        for(KitItem kitItem : items){
+        boolean kitLayoutEnabled = plugin.getConfigsManager().getMainConfigManager().isKitLayoutEnabled();
+        for(int itemIndex=0;itemIndex<items.size();itemIndex++){
+            KitItem kitItem = items.get(itemIndex);
             ItemStack item = kitItemManager.createItemFromKitItem(kitItem,player,kit);
 
             if(itemHelmet != null && kitItem.equals(itemHelmet)){
@@ -321,7 +323,16 @@ public class KitsManager {
             }else if(itemOffhand != null && kitItem.equals(itemOffhand)){
                 playerInventory.setItemInOffHand(item);
             }else{
-                if(playerInventory.firstEmpty() == -1 && dropItemsIfFullInventory){
+                //Check if the player saved a custom position for this item using the kit layout editor
+                Integer savedSlot = kitLayoutEnabled ?
+                        playerDataManager.getKitLayoutSlot(player,kit.getName(),itemIndex,kitItem.getStableId()) : null;
+                boolean savedSlotAvailable = savedSlot != null && savedSlot >= 0 && savedSlot <= 35 &&
+                        (clearInventory || playerInventory.getItem(savedSlot) == null
+                                || playerInventory.getItem(savedSlot).getType().equals(Material.AIR));
+
+                if(savedSlotAvailable){
+                    playerInventory.setItem(savedSlot,item);
+                }else if(playerInventory.firstEmpty() == -1 && dropItemsIfFullInventory){
                     player.getWorld().dropItemNaturally(player.getLocation(), item);
                 }else{
                     playerInventory.addItem(item);
