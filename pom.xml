@@ -6,7 +6,7 @@
 
     <groupId>pk.ajneb97</groupId>
     <artifactId>PlayerKits2</artifactId>
-    <version>1.23.2</version>
+    <version>1.23.3</version>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>

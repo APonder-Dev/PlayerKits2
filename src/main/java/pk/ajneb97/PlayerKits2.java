@@ -68,9 +68,6 @@ public class PlayerKits2 extends JavaPlugin {
         this.inventoryUpdateTaskManager = new InventoryUpdateTaskManager(this);
         this.inventoryUpdateTaskManager.start();
 
-        this.verifyManager = new VerifyManager(this);
-        this.verifyManager.verify();
-
         if(configsManager.getMainConfigManager().isMySQL()){
             mySQLConnection = new MySQLConnection(this);
             mySQLConnection.setupMySql();
@@ -83,6 +80,9 @@ public class PlayerKits2 extends JavaPlugin {
             new ExpansionPlayerKits(this).register();
         }
         Metrics metrics = new Metrics(this,19795);
+
+        this.verifyManager = new VerifyManager(this);
+        this.verifyManager.verify();
 
         Bukkit.getConsoleSender().sendMessage(MessagesManager.getLegacyColoredMessage(prefix+"&eHas been enabled! &fVersion: "+version));
         Bukkit.getConsoleSender().sendMessage(MessagesManager.getLegacyColoredMessage(prefix+"&eThanks for using my plugin!   &f~Ajneb97"));
