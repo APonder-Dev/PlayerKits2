@@ -2,6 +2,7 @@ package pk.ajneb97.managers;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -20,6 +21,7 @@ import pk.ajneb97.utils.MiniMessageUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Manages the per-player virtual kit layout editor: a plain inventory GUI (hotbar + main
@@ -84,6 +86,10 @@ public class KitLayoutManager {
             return;
         }
 
+        //Defensive: never let a real item the player is holding on their cursor leak
+        //into the virtual editor - hand it back to their real inventory first.
+        returnCursorItemToPlayer(player);
+
         inventoryPlayer.setInventoryName("kit_layout");
 
         String title = mainConfigManager.getKitLayoutTitle().replace("%kit%",kit.getName());
@@ -98,6 +104,18 @@ public class KitLayoutManager {
 
         player.openInventory(inv);
         players.add(inventoryPlayer);
+    }
+
+    private void returnCursorItemToPlayer(Player player){
+        ItemStack cursorItem = player.getItemOnCursor();
+        if(cursorItem == null || cursorItem.getType().equals(Material.AIR)){
+            return;
+        }
+        player.setItemOnCursor(null);
+        Map<Integer,ItemStack> leftover = player.getInventory().addItem(cursorItem);
+        for(ItemStack item : leftover.values()){
+            player.getWorld().dropItemNaturally(player.getLocation(), item);
+        }
     }
 
     private void sendConfigMessage(Player player,String key){
@@ -247,6 +265,7 @@ public class KitLayoutManager {
         }
         if(slot == SAVE_SLOT){
             saveLayoutFromInventory(inventoryPlayer);
+            flashSaveConfirmation(inventoryPlayer);
             return;
         }
 
@@ -257,6 +276,46 @@ public class KitLayoutManager {
         }
     }
 
+    /**
+     * Briefly swaps the Save button for a "Saved!" confirmation (glowing, renamed) so the
+     * player can see - not just read in chat - that the arrangement currently on screen is
+     * the one that's now persisted, then reverts it after a short delay. Guards against
+     * reverting into a stale/closed/different inventory if the player has since moved on.
+     */
+    private void flashSaveConfirmation(InventoryPlayer inventoryPlayer){
+        Player player = inventoryPlayer.getPlayer();
+        Inventory inv = InventoryUtils.getTopInventory(player);
+        if(inv == null){
+            return;
+        }
+
+        MainConfigManager mainConfigManager = plugin.getConfigsManager().getMainConfigManager();
+
+        new InventoryItem(inv,SAVE_SLOT,Material.LIME_DYE)
+                .name(mainConfigManager.getKitLayoutSavedButtonName())
+                .lore(new ArrayList<>(mainConfigManager.getKitLayoutSaveButtonLore()))
+                .enchanted(true)
+                .ready();
+
+        player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1.2f);
+
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if(!player.isOnline() || inventoryPlayer != getInventoryPlayer(player)){
+                return;
+            }
+            Inventory currentInv = InventoryUtils.getTopInventory(player);
+            if(currentInv == null || !currentInv.equals(inv)){
+                return;
+            }
+
+            Material saveMaterial = parseMaterial(mainConfigManager.getKitLayoutSaveButtonMaterial(),Material.EMERALD);
+            new InventoryItem(inv,SAVE_SLOT,saveMaterial)
+                    .name(mainConfigManager.getKitLayoutSaveButtonName())
+                    .lore(new ArrayList<>(mainConfigManager.getKitLayoutSaveButtonLore()))
+                    .ready();
+        }, 30L);
+    }
+
     public void resetLayout(InventoryPlayer inventoryPlayer){
         Player player = inventoryPlayer.getPlayer();
         Kit kit = plugin.getKitsManager().getKitByName(inventoryPlayer.getKitName());
@@ -265,6 +324,14 @@ public class KitLayoutManager {
         }
 
         plugin.getPlayerDataManager().resetKitLayout(player,kit.getName());
+
+        //Discard whatever virtual item the player might have mid-drag on their cursor -
+        //it belongs to the arrangement that's being discarded. Leaving it there would
+        //make it show up twice once the default layout is repopulated below.
+        ItemStack cursorItem = player.getItemOnCursor();
+        if(cursorItem != null && !cursorItem.getType().equals(Material.AIR)){
+            player.setItemOnCursor(null);
+        }
 
         Inventory inv = InventoryUtils.getTopInventory(player);
         if(inv != null){

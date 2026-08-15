@@ -45,6 +45,7 @@ public class MainConfigManager {
     private String kitLayoutSaveButtonMaterial;
     private String kitLayoutSaveButtonName;
     private List<String> kitLayoutSaveButtonLore;
+    private String kitLayoutSavedButtonName;
 
     public MainConfigManager(PlayerKits2 plugin){
         this.plugin = plugin;
@@ -82,6 +83,7 @@ public class MainConfigManager {
         kitLayoutSaveButtonMaterial = config.getString("kit_layout.save_button.material");
         kitLayoutSaveButtonName = config.getString("kit_layout.save_button.name");
         kitLayoutSaveButtonLore = config.getStringList("kit_layout.save_button.lore");
+        kitLayoutSavedButtonName = config.getString("kit_layout.save_button.saved_name");
     }
 
     public boolean reloadConfig(){
@@ -140,6 +142,7 @@ public class MainConfigManager {
                 getConfig().set("kit_layout.save_button.lore", new ArrayList<>(java.util.Arrays.asList(
                         "&7Click to save your current",
                         "&7item arrangement.")));
+                getConfig().set("kit_layout.save_button.saved_name", "&a&lSaved!");
                 configFile.saveConfig();
             }
             if(!text.contains("save_button:")){
@@ -148,6 +151,10 @@ public class MainConfigManager {
                 getConfig().set("kit_layout.save_button.lore", new ArrayList<>(java.util.Arrays.asList(
                         "&7Click to save your current",
                         "&7item arrangement.")));
+                configFile.saveConfig();
+            }
+            if(!text.contains("saved_name:")){
+                getConfig().set("kit_layout.save_button.saved_name", "&a&lSaved!");
                 configFile.saveConfig();
             }
         }catch(IOException e){
@@ -257,5 +264,9 @@ public class MainConfigManager {
 
     public List<String> getKitLayoutSaveButtonLore() {
         return kitLayoutSaveButtonLore;
+    }
+
+    public String getKitLayoutSavedButtonName() {
+        return kitLayoutSavedButtonName;
     }
 }

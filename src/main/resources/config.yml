@@ -67,6 +67,7 @@ kit_layout:
   save_button:
     material: EMERALD
     name: "&a&lSave Layout"
+    saved_name: "&a&lSaved!"
     lore:
       - "&7Click to save your current"
       - "&7item arrangement."

@@ -25,10 +25,15 @@ slots. The arrangement is:
   fall back to the plugin's normal item-giving behavior.
 - Fully virtual: nothing in the editor is a real item, and every duplication/extraction
   vector (shift-click, number-key swap, dragging, double-click, dropping, creative
-  cloning, disconnecting mid-edit) is blocked.
+  cloning, disconnecting mid-edit) is blocked. A player's real held item is also handed
+  back to their own inventory before the editor opens, so it can never end up trapped
+  inside the virtual GUI.
+- Clicking **Save** flashes the button (glowing, renamed, with a sound) to confirm the
+  arrangement currently on screen is what's now persisted - it isn't just a chat message.
 
 Configurable via the `kit_layout` section in `config.yml` (button appearance, GUI
-title, reset/back buttons) and the `kitLayout*` messages in `messages.yml`.
+title, reset/back/save buttons, the save-confirmation flash text) and the `kitLayout*`
+messages in `messages.yml`.
 
 ## Building
 
@@ -37,6 +42,20 @@ mvn clean package
 ```
 
 The compiled jar will be in `target/`.
+
+## Releases
+
+Version numbers follow `major.feature.fix`:
+
+- `x.#.#` - full release. Not automated; only bumped intentionally.
+- `#.x.#` - a feature was added.
+- `#.#.x` - a bug fix.
+
+Every push to `main` that changes `pom.xml` or `src/**` runs the `Release` GitHub
+Actions workflow. If the `<version>` in `pom.xml` doesn't already have a matching
+GitHub Release, it builds the plugin and publishes a new release for that version with
+the jar attached - so cutting a release is just a matter of bumping the version in
+`pom.xml`. A separate `CI` workflow builds every push/PR to catch build breakage early.
 
 ## License
 
