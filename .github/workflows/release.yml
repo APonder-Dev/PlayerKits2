@@ -12,6 +12,7 @@ on:
     paths:
       - 'pom.xml'
       - 'src/**'
+  workflow_dispatch: {}
 
 permissions:
   contents: write
