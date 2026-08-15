@@ -2,6 +2,7 @@ package pk.ajneb97.managers.edit;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.Inventory;
@@ -67,6 +68,41 @@ public class InventoryEditManager {
         return players;
     }
 
+    /**
+     * Builds a consistent, breadcrumb-style title for an editor screen so players can
+     * always tell which page (and which kit) they're currently editing, instead of every
+     * screen showing the same generic "Editing Kit" title.
+     */
+    public static String buildTitle(String page, String kitName){
+        return "&9&l"+page+" &8» &f"+kitName;
+    }
+
+    /**
+     * Fills every currently-empty slot in the given range with a plain black glass pane,
+     * so editor screens read as a finished menu instead of icons floating over raw black
+     * space. Call this after all real content has already been placed in the inventory.
+     */
+    public static void fillEmptyWithGlass(Inventory inv, int fromSlot, int toSlot){
+        Material glass = OtherUtils.isLegacy() ? Material.valueOf("STAINED_GLASS_PANE") : Material.BLACK_STAINED_GLASS_PANE;
+        for(int i=fromSlot;i<=toSlot;i++){
+            if(inv.getItem(i) == null){
+                InventoryItem glassItem = new InventoryItem(inv, i, glass).name("");
+                if(OtherUtils.isLegacy()){
+                    glassItem.dataValue((short) 15);
+                }
+                glassItem.ready();
+            }
+        }
+    }
+
+    /**
+     * A short, consistent click sound played whenever a toggle setting is flipped in an
+     * editor screen, so the change is felt - not just re-read off refreshed lore text.
+     */
+    public static void playToggleSound(Player player){
+        player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
+    }
+
     public void removeInventoryPlayer(Player player){
         for(int i=0;i<players.size();i++){
             if(players.get(i).getPlayer().equals(player)){
@@ -77,7 +113,8 @@ public class InventoryEditManager {
 
     public void openInventory(InventoryPlayer inventoryPlayer) {
         inventoryPlayer.setInventoryName("edit_main_inventory");
-        Inventory inv = Bukkit.createInventory(null, 45, MessagesManager.getLegacyColoredMessage("&9Editing Kit"));
+        Inventory inv = Bukkit.createInventory(null, 45,
+                MessagesManager.getLegacyColoredMessage(buildTitle("Kit Editor", inventoryPlayer.getKitName())));
 
         Kit kit = plugin.getKitsManager().getKitByName(inventoryPlayer.getKitName());
 
@@ -252,6 +289,11 @@ public class InventoryEditManager {
         lore = setActionItemLore(kit.getErrorActions(),lore);
         new InventoryItem(inv, 24, Material.NETHER_BRICK).name("&eSet &6&lError Actions").lore(lore).ready();
 
+        //Close button, then fill every remaining empty slot so the menu doesn't look
+        //like unfinished floating icons.
+        new InventoryItem(inv, 44, Material.BARRIER).name("&c&lClose").ready();
+        fillEmptyWithGlass(inv, 0, 44);
+
         inventoryPlayer.getPlayer().openInventory(inv);
         players.add(inventoryPlayer);
     }
@@ -300,6 +342,7 @@ public class InventoryEditManager {
         Kit kit = plugin.getKitsManager().getKitByName(inventoryPlayer.getKitName());
         kit.setPermissionRequired(!kit.isPermissionRequired());
         openInventory(inventoryPlayer);
+        playToggleSound(inventoryPlayer.getPlayer());
         plugin.getConfigsManager().getKitsConfigManager().saveConfig(kit);
     }
 
@@ -307,6 +350,7 @@ public class InventoryEditManager {
         Kit kit = plugin.getKitsManager().getKitByName(inventoryPlayer.getKitName());
         kit.setOneTime(!kit.isOneTime());
         openInventory(inventoryPlayer);
+        playToggleSound(inventoryPlayer.getPlayer());
         plugin.getConfigsManager().getKitsConfigManager().saveConfig(kit);
     }
 
@@ -314,6 +358,7 @@ public class InventoryEditManager {
         Kit kit = plugin.getKitsManager().getKitByName(inventoryPlayer.getKitName());
         kit.setAutoArmor(!kit.isAutoArmor());
         openInventory(inventoryPlayer);
+        playToggleSound(inventoryPlayer.getPlayer());
         plugin.getConfigsManager().getKitsConfigManager().saveConfig(kit);
     }
 
@@ -388,6 +433,9 @@ public class InventoryEditManager {
                     break;
                 case 42:
                     inventoryEditDisplayManager.openInventory(inventoryPlayer,"requirements");
+                    break;
+                case 44:
+                    inventoryPlayer.getPlayer().closeInventory();
                     break;
             }
         }else if(inventory.startsWith("edit_actions_")){

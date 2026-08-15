@@ -30,7 +30,9 @@ public class InventoryEditActionsEditManager {
 
     public void openInventory(InventoryPlayer inventoryPlayer, String type, int actionSlot) {
         inventoryPlayer.setInventoryName("edit_action_slot_" + type + "_" + actionSlot);
-        Inventory inv = Bukkit.createInventory(null, 27, MessagesManager.getLegacyColoredMessage("&9Editing Kit"));
+        String pageName = (type.equals("claim") ? "Claim" : "Error")+" Action #"+(actionSlot+1);
+        Inventory inv = Bukkit.createInventory(null, 27,
+                MessagesManager.getLegacyColoredMessage(InventoryEditManager.buildTitle(pageName, inventoryPlayer.getKitName())));
 
         //Set Go Back
         new InventoryItem(inv, 18, Material.ARROW).name("&eGo Back").ready();
@@ -95,6 +97,7 @@ public class InventoryEditActionsEditManager {
                 .setSkull("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMWNkZTUxNGFmYTE5NGQ1Y2JkMDQ3N2MwNWI3Y2IxODVmZjFkZmZkMGMyZmFkZmFlMWE1YmI4MDY0ODU2Yzg5MiJ9fX0=")
                 .name("&eSet &6&lDisplay Item").lore(lore).ready();
 
+        InventoryEditManager.fillEmptyWithGlass(inv, 0, 26);
 
         inventoryPlayer.getPlayer().openInventory(inv);
         inventoryEditActionsManager.getInventoryEditManager().getPlayers().add(inventoryPlayer);
@@ -125,6 +128,7 @@ public class InventoryEditActionsEditManager {
         kitAction.setExecuteBeforeItems(!kitAction.isExecuteBeforeItems());
 
         openInventory(inventoryPlayer,type,slot);
+        InventoryEditManager.playToggleSound(inventoryPlayer.getPlayer());
 
         plugin.getConfigsManager().getKitsConfigManager().saveConfig(kit);
     }
@@ -137,6 +141,7 @@ public class InventoryEditActionsEditManager {
         kitAction.setCountAsItem(!kitAction.isCountAsItem());
 
         openInventory(inventoryPlayer,type,slot);
+        InventoryEditManager.playToggleSound(inventoryPlayer.getPlayer());
 
         plugin.getConfigsManager().getKitsConfigManager().saveConfig(kit);
     }

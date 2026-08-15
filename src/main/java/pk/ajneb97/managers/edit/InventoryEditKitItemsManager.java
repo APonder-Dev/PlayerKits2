@@ -29,7 +29,8 @@ public class InventoryEditKitItemsManager {
 
     public void openInventory(InventoryPlayer inventoryPlayer){
         inventoryPlayer.setInventoryName("edit_items");
-        Inventory inv = Bukkit.createInventory(null, 54, MessagesManager.getLegacyColoredMessage("&9Editing Kit"));
+        Inventory inv = Bukkit.createInventory(null, 54,
+                MessagesManager.getLegacyColoredMessage(InventoryEditManager.buildTitle("Kit Items", inventoryPlayer.getKitName())));
 
         //Decoration
         for(int i=46;i<=52;i++){

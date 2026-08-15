@@ -27,7 +27,8 @@ public class InventoryEditRequirementsManager {
 
     public void openInventory(InventoryPlayer inventoryPlayer) {
         inventoryPlayer.setInventoryName("edit_requirements");
-        Inventory inv = Bukkit.createInventory(null, 27, MessagesManager.getLegacyColoredMessage("&9Editing Kit"));
+        Inventory inv = Bukkit.createInventory(null, 27,
+                MessagesManager.getLegacyColoredMessage(InventoryEditManager.buildTitle("Requirements", inventoryPlayer.getKitName())));
 
         //Set Go Back
         new InventoryItem(inv, 18, Material.ARROW).name("&eGo Back").ready();
@@ -69,6 +70,8 @@ public class InventoryEditRequirementsManager {
         lore.add("&cthis GUI! You can use the config.");
         new InventoryItem(inv, 15, Material.REDSTONE).name("&eSet &6&lExtra Requirements").lore(lore).ready();
 
+        InventoryEditManager.fillEmptyWithGlass(inv, 0, 26);
+
         inventoryPlayer.getPlayer().openInventory(inv);
         inventoryEditManager.getPlayers().add(inventoryPlayer);
     }
@@ -82,6 +85,7 @@ public class InventoryEditRequirementsManager {
         }
         kitRequirements.setOneTimeRequirements(!kitRequirements.isOneTimeRequirements());
         openInventory(inventoryPlayer);
+        InventoryEditManager.playToggleSound(inventoryPlayer.getPlayer());
         plugin.getConfigsManager().getKitsConfigManager().saveConfig(kit);
     }
 

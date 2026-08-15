@@ -9,7 +9,11 @@ maintained here by APonder.
 - Fully configurable kits: items, cooldowns, permissions, one-time claims, purchase requirements (Vault), claim/error actions, PlaceholderAPI support.
 - Configurable GUIs for browsing, previewing, and buying kits.
 - MySQL or flat-file (YAML) player data storage.
-- In-game kit creation and an admin GUI for editing kits without touching config files.
+- In-game kit creation and an admin GUI for editing kits without touching config files. Each
+  editor screen has its own breadcrumb-style title (e.g. `Kit Editor » myKit`,
+  `Claim Actions » myKit`) instead of every screen sharing one generic title, a bordered
+  layout, a Close button on the main screen, and a click sound whenever a toggle setting
+  is flipped.
 
 ### Per-player kit layout editor
 

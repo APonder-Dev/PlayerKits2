@@ -31,7 +31,9 @@ public class InventoryEditActionsManager {
 
     public void openInventory(InventoryPlayer inventoryPlayer,String type) {
         inventoryPlayer.setInventoryName("edit_actions_"+type);
-        Inventory inv = Bukkit.createInventory(null, 54, MessagesManager.getLegacyColoredMessage("&9Editing Kit"));
+        String pageName = type.equals("claim") ? "Claim Actions" : "Error Actions";
+        Inventory inv = Bukkit.createInventory(null, 54,
+                MessagesManager.getLegacyColoredMessage(InventoryEditManager.buildTitle(pageName, inventoryPlayer.getKitName())));
 
         //Decoration
         for(int i=45;i<=52;i++){

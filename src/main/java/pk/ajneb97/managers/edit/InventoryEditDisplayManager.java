@@ -30,7 +30,8 @@ public class InventoryEditDisplayManager {
 
     public void openInventory(InventoryPlayer inventoryPlayer, String type) {
         inventoryPlayer.setInventoryName("edit_display_" + type);
-        Inventory inv = Bukkit.createInventory(null, 27, MessagesManager.getLegacyColoredMessage("&9Editing Kit"));
+        Inventory inv = Bukkit.createInventory(null, 27,
+                MessagesManager.getLegacyColoredMessage(InventoryEditManager.buildTitle("Display Item", inventoryPlayer.getKitName())));
 
         //Decoration
         ArrayList<Integer> slots = new ArrayList<>();
