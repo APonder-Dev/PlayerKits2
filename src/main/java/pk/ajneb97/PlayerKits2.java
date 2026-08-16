@@ -88,7 +88,9 @@ public class PlayerKits2 extends JavaPlugin {
         Bukkit.getConsoleSender().sendMessage(MessagesManager.getLegacyColoredMessage(prefix+"&eThanks for using my plugin!   &f~Ajneb97"));
 
         updateCheckerManager = new UpdateCheckerManager(version);
-        updateMessage(updateCheckerManager.check());
+        if(configsManager.getMainConfigManager().isUpdateNotify()){
+            updateMessage(updateCheckerManager.check());
+        }
     }
 
     public void onDisable(){
